@@ -7,6 +7,9 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Base\\Models\\BaseModel' => $baseDir . '/src/Models/BaseModel.php',
+    'Base\\Models\\User' => $baseDir . '/src/Models/User.php',
+    'Base\\Models\\User_management\\Login' => $baseDir . '/src/Models/User_management/Login.php',
+    'Base\\Models\\User_management\\Registrar' => $baseDir . '/src/Models/User_management/Registrar.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'Firebase\\JWT\\BeforeValidException' => $vendorDir . '/firebase/php-jwt/src/BeforeValidException.php',
     'Firebase\\JWT\\CachedKeySet' => $vendorDir . '/firebase/php-jwt/src/CachedKeySet.php',

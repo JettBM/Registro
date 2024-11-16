@@ -11,8 +11,8 @@ class Registrar {
     
     public static function RegistrarUsuario($name, $email, $password){
         
-        $user = new BaseModel();
-        $stmt = $user->db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
+        $db = new BaseModel();
+        $stmt = $db->db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
         $stmt->bindParam(':name', $name);
         $stmt->bindParam('email', $email);
         $stmt->bindParam('password', password_hash($password, PASSWORD_DEFAULT));
@@ -26,7 +26,7 @@ class Registrar {
 }
 
 
-print_r(Registrar::RegistrarUsuario($_POST['name'], $_POST['email'], $_POST['password']));
+
 
 
 ?>

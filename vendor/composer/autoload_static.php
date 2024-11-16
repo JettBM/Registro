@@ -30,6 +30,9 @@ class ComposerStaticInit20fad51902f91e7fd3039e016a6556b5
 
     public static $classMap = array (
         'Base\\Models\\BaseModel' => __DIR__ . '/../..' . '/src/Models/BaseModel.php',
+        'Base\\Models\\User' => __DIR__ . '/../..' . '/src/Models/User.php',
+        'Base\\Models\\User_management\\Login' => __DIR__ . '/../..' . '/src/Models/User_management/Login.php',
+        'Base\\Models\\User_management\\Registrar' => __DIR__ . '/../..' . '/src/Models/User_management/Registrar.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Firebase\\JWT\\BeforeValidException' => __DIR__ . '/..' . '/firebase/php-jwt/src/BeforeValidException.php',
         'Firebase\\JWT\\CachedKeySet' => __DIR__ . '/..' . '/firebase/php-jwt/src/CachedKeySet.php',
