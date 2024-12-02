@@ -4,13 +4,14 @@ namespace Base\Models;
 require __DIR__ . '/../../../Registro/vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Base\Models\BaseModel;
+use Exception;
 use PDO;
 
 
 
 class User extends BaseModel {
     
-    protected $fields = ['name', 'email', 'password'];
+    public $allowedData = ['name', 'email', 'password'];
     public $name;
     public $email;
     public $password;
@@ -40,53 +41,82 @@ class User extends BaseModel {
     //esta funcion debe ser sin parametros, ya que los parametros se enviaran desde un objeto
    public function saveUser(){
 
-    $stmt = $this->db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
-    $stmt->bindParam(':name', $this->name);
-    $stmt->bindParam('email', $this->email);
-    $stmt->bindParam('password', password_hash($this->password, PASSWORD_DEFAULT));
-    //retornar el usuario insertado como un objeto
-    $id = $this->db->lastInsertId();
-    if($stmt->execute()){
-        return $id;
+    try{
+        //beginTransaction es para poder hacer multiples consultas SQL y que se ejecuten como un solo comando
+        $this->db->beginTransaction();
+
+        $stmt = $this->db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
+        $stmt->bindParam(':name', $this->name);
+        $stmt->bindParam('email', $this->email);
+        $stmt->bindParam('password', password_hash($this->password, PASSWORD_DEFAULT));
+        $stmt->execute();
+
+        $stmt2 = $this->db->query("SELECT * FROM users WHERE id = LAST_INSERT_ID()");
+        $user = $stmt->fetchObject(User::class);
+
+        $this->db->commit();
+
+        return $user;
     }
+    catch(Exception $e){
+        $this->db->rollBack();
+        return $e->getMessage();
+    }
+
+    //retornar el usuario insertado como un objeto
+
    }
 
+  
    //aprendiendo sobre consultas dinamicas, para testear.
-   public function updateInfo($email, $name = null, $password = null){
-
-    foreach($this->fields as $key => $value){
-        $this->$key ":{$name}"
+   public function updateUser($id){
+    //get_object_vars se utiliza para obtener las propiedades de un objeto
+    $data = get_object_vars($this);
+    //array_intersect_key devuelve todas las claves que esten presentes en los arrays dados, solo devuelve las que esten presentes en ambos, si hay una que esta
+    //en un array pero no en el otro, no aparece
+    //array_flip hace que en el array se intercambie la clave por el valor y el valor por la clave
+    $fields = array_intersect_key($data, array_flip($this->allowedData));
+    //array_filter es para verificar un array para ver si tiene claves sin valores, en caso de haber una clave que no tenga un valor asignado se obvia
+    $fields = array_filter($fields, function($values){
+        return !empty($values);
+    }
+    );
+    if(empty($fields)){
+        throw new Exception("No data");
     }
 
-    $SQLfields = [];
-    $params = [];
-
-    if(!is_null($name)){
-        $SQLfields[] = "name = :name";
-        $params["name"] = $name; 
+    if(isset($fields['password'])){
+        $fields['password'] = password_hash($fields['password'], PASSWORD_DEFAULT);
+    }    
+    //este bloque crea un array vacio para el statement dinamico. 
+    $sqlclause = [];
+    //el foreach pasara por el array fields que tenga llave => valor y guardara llave => :llave en el array vacio creado anteriormente
+    foreach($fields as $column => $value){
+        $sqlclause[] = "$column = :$column"; 
     }
-    if(!is_null($password)){
-        $SQLfields[] = "password = :password";
-        $params["password"] = $password;
-    }
+    //esto convierte el array creadocon los valores en un string que pueda ser insertado en el statement sql
+    $sqlclause = implode(", ", $sqlclause);
+    //paso el id a parte para testeo, luego probar pasando todo desde sqlclause
+    $fields['id'] = $id;
 
+    $this->db->beginTransaction();
+    try{
+        $stmt = $this->db->prepare("UPDATE users SET {$sqlclause} WHERE id = :id");
+        $stmt->execute($fields);
+        
+        $stmt2 = $this->db->prepare("SELECT id, name, email FROM users WHERE id = :id");
+        $stmt2->execute(['id' => $id]);
+
+        $updatedUser = $stmt2->fetchObject(User::class);
+        $this->db->commit();
+        
+        return $updatedUser;
     
-    $params["email"] = $email;
-    
-    $stmt = $this->db->prepare("UPDATE users SET " . implode(', ', $SQLfields) . "WHERE email = :email");
-
-    foreach($params as $key => $value){
-        $stmt->bindParam($key, $value);
     }
-
-    if($stmt->execute()){
-        return 'true';
+    catch(Exception $e){
+        $this->db->rollBack();
+        return $e->getMessage();
     }
-    else{
-        return 'false';
-    }
-
-
 
    }
     

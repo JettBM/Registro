@@ -12,7 +12,7 @@ class BaseModel {
    {
       try{
          $this->db = new PDO("mysql:host=localhost;dbname=usuarios", 'root');
-         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION, PDO::FETCH_ASSOC);
+         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
          
          
       }
