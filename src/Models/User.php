@@ -22,15 +22,17 @@ class User extends BaseModel {
        
     }
     
-    public function getUser(){
-        $stmt = $this->db->prepare("SELECT id, name, password FROM users WHERE email = :email");
-        $stmt->bindParam('email', $this->email);
+    public static function getUserByEmailPassword($email, $password):self
+    {
+        $stmt = new self();
+        $stmt = $stmt->db->prepare("SELECT id, name, password FROM users WHERE email = :email");
+        $stmt->bindParam('email', $email);
 
         $stmt->execute();
         
         $user = $stmt->fetchObject(User::class);
     
-        if($user && password_verify($this->password, $user->password)){
+        if($user && password_verify($password, $user->password)){
             return $user;
         }
         else{
@@ -38,38 +40,53 @@ class User extends BaseModel {
         }
 
     }
-    //esta funcion debe ser sin parametros, ya que los parametros se enviaran desde un objeto
-   public function saveUser(){
 
-    try{
-        //beginTransaction es para poder hacer multiples consultas SQL y que se ejecuten como un solo comando
-        $this->db->beginTransaction();
+    public static function getUserById($id)
+    {
+        $stmt = new self();
+        $stmt = $stmt->db->prepare("SELECT name, email FROM users WHERE id = :id");
+        $stmt->bindParam('id', $id);
 
-        $stmt = $this->db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam('email', $this->email);
-        $stmt->bindParam('password', password_hash($this->password, PASSWORD_DEFAULT));
         $stmt->execute();
 
-        $stmt2 = $this->db->query("SELECT * FROM users WHERE id = LAST_INSERT_ID()");
-        $user = $stmt->fetchObject(User::class);
-
-        $this->db->commit();
-
-        return $user;
-    }
-    catch(Exception $e){
-        $this->db->rollBack();
-        return $e->getMessage();
+        return $stmt;
     }
 
-    //retornar el usuario insertado como un objeto
+    //esta funcion debe ser sin parametros, ya que los parametros se enviaran desde un objeto
+   public function saveUser():User
+   {
 
+        try
+        {
+            //beginTransaction es para poder hacer multiples consultas SQL y que se ejecuten como un solo comando
+            $this->db->beginTransaction();
+
+            $stmt = $this->db->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
+            $stmt->bindParam(':name', $this->name);
+            $stmt->bindParam('email', $this->email);
+            $stmt->bindParam('password', password_hash($this->password, PASSWORD_DEFAULT));
+            $stmt->execute();
+
+            
+            $user = $stmt->fetchObject(User::class);
+
+            $this->db->commit();
+
+            return $user;
+        }
+        catch(Exception $e)
+        {
+            $this->db->rollBack();
+            return $e->getMessage();
+        }
+
+        //retornar el usuario insertado como un objeto
    }
 
   
    //aprendiendo sobre consultas dinamicas, para testear.
-   public function updateUser($id){
+   public function updateUser($id)
+   {
     //get_object_vars se utiliza para obtener las propiedades de un objeto
     $data = get_object_vars($this);
     //array_intersect_key devuelve todas las claves que esten presentes en los arrays dados, solo devuelve las que esten presentes en ambos, si hay una que esta
@@ -77,7 +94,8 @@ class User extends BaseModel {
     //array_flip hace que en el array se intercambie la clave por el valor y el valor por la clave
     $fields = array_intersect_key($data, array_flip($this->allowedData));
     //array_filter es para verificar un array para ver si tiene claves sin valores, en caso de haber una clave que no tenga un valor asignado se obvia
-    $fields = array_filter($fields, function($values){
+    $fields = array_filter($fields, function($values)
+    {
         return !empty($values);
     }
     );
@@ -110,14 +128,16 @@ class User extends BaseModel {
         $updatedUser = $stmt2->fetchObject(User::class);
         $this->db->commit();
         
-        return $updatedUser;
+        //@todo Crear funcion para buscar usuario en base a un criterio específico
+         //
+        
     
     }
     catch(Exception $e){
         $this->db->rollBack();
-        return $e->getMessage();
+        throw $e->getMessage();
     }
-
+    return $updatedUser;
    }
     
    

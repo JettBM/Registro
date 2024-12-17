@@ -1,7 +1,7 @@
 <?php
-namespace Base\Models\User_management;
+namespace Base\User_management;
 
-require __DIR__ . '/../../../../Registro/vendor/autoload.php';
+require __DIR__ . '/../../../Registro/vendor/autoload.php';
 use Base\Models\User;
 use Base\Models\BaseModel;
 use PDO;
