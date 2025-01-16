@@ -9,32 +9,53 @@ use PDO;
 
 
 
-$user = User::getUserById($_POST['id']);
 
-print_r($user);
 
-//volver los parametros del objeto dinamicos tambien
-// class Update {
-//     //asignar por defecto null a los parametros en caso de que no se reciba su valor
-//     public function actualizar($id, $name, $email){
-//         $updateUser = User::getUserByEmailPassword(email: $email)
-//         $updateUser->name = $name;
-//         $updateUser->email = (string)$email;
+class Update {
+
+    public function actualizar($id, $name = null, $email = null, $password = null)
+    {
+        try
+        {
+
+        $updatedUser = new User();
+        $updatedUser->name = $name;
+        $updatedUser->email = $email;
+        $updatedUser->password = $password;
+
+        $updatedUser->updateUser($id);
         
-//         try{
-//             $updatedUser = $updateUser->updateUser($id);
-//             return print(json_encode($updatedUser));
-//         }
-//         catch(Exception $e){
-//             return $e->getMessage();
-//         }
-        
-//     }
-   
-// }
+        }
 
-// $updatedUser = new Update();
-// $updatedUser->actualizar($_POST['id'], $_POST['name'], $_POST['email']);
+        catch(Exception $e)
+        {
+            echo $e->getMessage("Error");
+        }
+        
+        
+    $updatedUser = User::getUserById($id);
+    
+    if($updatedUser)
+    {
+        var_dump($updatedUser);
+    }
+    else
+    {
+        echo "error";
+        die;
+    }
+    
+    return $updatedUser;
+        
+    }
+}
+
+$updatedUser = new Update();
+$updatedUser->actualizar($_POST['id'], $_POST['name']);
+
+print_r($updatedUser);
+
+
 
 // class Registrar {
 
@@ -49,7 +70,8 @@ print_r($user);
 //         return print(json_encode($newUser));
 //     }
 //     catch(Exception $e){
-//         return $e->getMessage();
+//         http_response_code(500);
+//         return print(json_encode(['error' => $e->getMessage()]));
 //     }
 //  }
 
